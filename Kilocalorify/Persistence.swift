@@ -13,9 +13,18 @@ struct PersistenceController {
     static var preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+        for coef in 0..<10 {
+            let newProduct = Product()
+            newProduct.name = "Banana"
+            newProduct.calories = 0.887
+            
+            let newConsumation = Consumation()
+            newConsumation.timestamp = Date()
+            newConsumation.amount = 170 + Float(coef) * 7
+            newConsumation.product = newProduct
+            
+            newProduct.consumations?.adding(newConsumation)
+            
         }
         do {
             try viewContext.save()

@@ -13,6 +13,7 @@
 		96683A6928454BAA00C54A37 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 96683A6828454BAA00C54A37 /* Preview Assets.xcassets */; };
 		96683A6B28454BAA00C54A37 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96683A6A28454BAA00C54A37 /* Persistence.swift */; };
 		96683A6E28454BAA00C54A37 /* Kilocalorify.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 96683A6C28454BAA00C54A37 /* Kilocalorify.xcdatamodeld */; };
+		966AB54F28466CAE00066811 /* ConsumationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966AB54E28466CAE00066811 /* ConsumationModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		96683A6828454BAA00C54A37 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		96683A6A28454BAA00C54A37 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		96683A6D28454BAA00C54A37 /* Kilocalorify.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Kilocalorify.xcdatamodel; sourceTree = "<group>"; };
+		966AB54E28466CAE00066811 /* ConsumationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsumationModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 		96683A6028454BA900C54A37 /* Kilocalorify */ = {
 			isa = PBXGroup;
 			children = (
+				966AB54D28466C8500066811 /* Model */,
 				96683A6128454BA900C54A37 /* KilocalorifyApp.swift */,
 				96683A6328454BA900C54A37 /* ContentView.swift */,
 				96683A6528454BAA00C54A37 /* Assets.xcassets */,
@@ -71,6 +74,14 @@
 				96683A6828454BAA00C54A37 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		966AB54D28466C8500066811 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				966AB54E28466CAE00066811 /* ConsumationModel.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -143,6 +154,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				966AB54F28466CAE00066811 /* ConsumationModel.swift in Sources */,
 				96683A6B28454BAA00C54A37 /* Persistence.swift in Sources */,
 				96683A6E28454BAA00C54A37 /* Kilocalorify.xcdatamodeld in Sources */,
 				96683A6428454BA900C54A37 /* ContentView.swift in Sources */,

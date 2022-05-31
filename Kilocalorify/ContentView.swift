@@ -1,76 +1,178 @@
 import SwiftUI
 import CoreData
+import Combine
 
-struct MyProduct: Identifiable {
-    var id: UUID = UUID()
-    var name = ""
-    var caloricity : Float
-    
-    init(name: String, caloriesIn100g: Float) {
-        self.name = name
-        self.caloricity = caloriesIn100g / 100
-    }
-    
-    init(name: String, caloriesIn1g: Float) {
-        self.name = name
-        self.caloricity = caloriesIn1g
+struct ConsumationDetailView: View {
+    let consumation: Consumation
+    var body: some View {
+        VStack{
+            Text("Product")
+                .font(Font.headline.weight(.light))
+            Text(consumation.product!.name!)
+                .padding([.bottom], 20)
+            
+            Text("Amount")
+                .font(Font.headline.weight(.light))
+            Text(String(format: "%.1f", consumation.amount) + " g")
+                .padding([.bottom], 20)
+            
+            Text("Calories")
+                .font(Font.headline.weight(.light))
+            Text(String(format: "%.1f", consumation.amount * consumation.product!.calories) + " kcal")
+                .padding([.bottom], 20)
+        }
     }
 }
 
-struct MyConsumation: Identifiable {
-    var id: UUID = UUID()
-    var product: MyProduct
-    var weight : Float
-    //
-    init(product: MyProduct, weight: Float){
-        self.product = product
-        self.weight = weight
+struct ConsumationCreateView: View {
+    
+    @FetchRequest(
+        entity: Product.entity(),
+        sortDescriptors: []
+    ) var Products: FetchedResults<Product>
+    
+    @State var selectedProduct: Product = Product()
+    @State var amount: String = ""
+    @State var date: Date = Date.now
+    
+    @Environment(\.managedObjectContext) var moc
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Product")
+                .font(Font.headline.weight(.light))
+            
+            Picker("Product", selection: $selectedProduct){
+                ForEach(Products) { p in
+                    Text(p.name ?? "")
+                }
+            }
+            .padding([.bottom], 20)
+
+            Text("Amount")
+                .font(Font.headline.weight(.light))
+            TextField("200g", text: $amount)
+                .padding([.bottom], 20)
+                .keyboardType(.decimalPad)
+            
+            DatePicker("Choose date", selection: $date)
+            
+        }
+        .toolbar(){
+            Button("Create", action: createConsumation)
+        }
+        .padding([.trailing, .leading], 30)
+    }
+    
+    func createConsumation(){
+        
+        let predicate = NSPredicate(format: "name == %@", "Banana" as! NSString)
+        let _fr = Product.fetchRequest()
+        _fr.predicate = predicate
+        let _product = try! self.moc.fetch(_fr).first
+        
+        let nc = Consumation(context: moc)
+        nc.product = _product
+        nc.timestamp = date
+        if let _amount = Float(amount) {
+            nc.amount = _amount
+        } else {
+            Alert(title: Text("Error"), message: Text("Invalid amount"), dismissButton: .default(Text("Got it!")))
+        }
+
+        try? moc.save()
     }
 }
 
 struct ContentView: View {
-    @State var Consumations: [MyConsumation] = [MyConsumation(product: MyProduct(name: "Eggs", caloriesIn100g: 155), weight: 190)]
-    @State var allCalories: Float = 0
+//    @FetchRequest(
+//        entity: Consumation.entity(),
+//        sortDescriptors: []
+//    ) var Consumations: FetchedResults<Consumation>
+    @State var Consumations : [Consumation] = []
+    @State var caloriesToday : Float = 0
+    @Environment(\.managedObjectContext) var moc
+
     
     var body: some View {
         NavigationView {
-            VStack {
-                Text("hello")
-                List(Consumations) { (c:MyConsumation) in
-                    HStack {
-                        Text(c.product.name)
-                        Spacer()
-                        Text(String(c.weight) + "g")
-                        Spacer()
-                        Text(String(c.weight * c.product.caloricity) + "kcal")
+            VStack(alignment: .leading) {
+                HStack {
+                    Label("Calories consumed today", image: "bolt.Fill")
+                        .font(Font.title.bold())
+                    Text("")
+                }
+                List {
+                    ForEach(Consumations) { (c:Consumation) in
+                        NavigationLink(destination: ConsumationDetailView(consumation: c)) {
+                            HStack {
+                                Text(c.timestamp!, format: .dateTime.hour().minute())
+                                Spacer()
+                                Text(c.product!.name ?? "kke")
+                                Spacer()
+                                Text(String(format: "%.1f", c.amount * c.product!.calories) + " kcal")
+                            }
+                        }
                     }
+                    .onDelete(perform: delete)
+                }
+                .onAppear(){
+                    loadTodayConsumations()
                 }
                 .toolbar() {
-                    Button(action: AddEmptyConsomation) {
-                        Text("Create empty product")
+                    HStack{
+                        EditButton()
+                        Button("Add Empty") {
+                            let newProduct = Product(context: moc)
+                            newProduct.name = "Banana"
+                            newProduct.calories = 1.0
+                            
+                            let newConsumation = Consumation(context: moc)
+                            newConsumation.timestamp = Date()
+                            newConsumation.amount = 100
+                            newConsumation.product = newProduct
+                                                  
+                            try? moc.save()
+                            loadTodayConsumations()
+                        }
+                        NavigationLink(destination: ConsumationCreateView()){
+                            Text("Add product")
+                        }
                     }
                 }
-                
             }
         }
     }
     
-    init(){
-        if Consumations.isEmpty {
-            allCalories = 0
-        } else {
-            for c in Consumations {
-                allCalories += c.weight * c.product.caloricity
-            }
+    func delete(at offsets: IndexSet) {
+        for offset in offsets {
+            let consumation = Consumations[offset]
+            moc.delete(consumation)
         }
+        Consumations.remove(atOffsets: offsets)
+        try? moc.save()
     }
     
-    func AddEmptyConsomation() {
-        let np = MyProduct(name: "Empty", caloriesIn1g: 0)
-        let nc = MyConsumation(product: np, weight: 0)
-        Consumations.append(nc)
+    func loadTodayConsumations() {
+        let date = Date()
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: date)
+        let predicate = NSPredicate(format: "timestamp >= %@", today as NSDate)
+        
+        let _fr = Consumation.fetchRequest()
+        _fr.predicate = predicate
+        
+        let _result = try! self.moc.fetch(_fr)
+        
+        self.Consumations = _result
     }
+    
+//    init() {
+//
+//    }
 }
+
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
